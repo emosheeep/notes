@@ -1,0 +1,17 @@
+$maxPageWidth = 960px
+
+scroll()
+  &::-webkit-scrollbar
+    /*滚动条整体样式*/
+    width : 5px;  /*高宽分别对应横竖滚动条的尺寸*/
+    height: 5px;
+  &::-webkit-scrollbar-thumb
+    /*滚动条里面小方块*/
+    border-radius 10px
+    background #C1C1C1
+    &:hover
+      background-color #D6D6D6
+  &::-webkit-scrollbar-track
+    /*滚动条里面轨道*/
+    border-radius 10px
+    background #F1F1F1
