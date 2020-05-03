@@ -1,16 +1,15 @@
 <template>
   <nav class="container">
-    <p class="title">目录</p>
+    <p class="title" v-show="isCompleted">{{ title }}</p>
     <ul class="catalogue">
       <li
         v-for="(h, index) in headers"
         :key="index"
         :class="[h.className, {active: curHeader === index}]"
-        ref="cataItems"
       >
         <a
           :href="`#${h.id}`"
-          @click="curHeader = index"
+          @click.prevent="scroll(h.id, index)"
         >{{ h.content }}</a>
       </li>
     </ul>
@@ -18,53 +17,112 @@
 </template>
 
 <script>
-import _ from 'lodash'
+import debounce from 'lodash.debounce'
+import smooth from 'smoothscroll-polyfill'
 
 export default {
-  name: 'Catalog',
+  name: 'ArticleCatalogue',
   props: {
     selector: {
       type: [String, Object],
-      default: null
+      default: null,
+      required: true
+    },
+    title: {
+      type: String,
+      default: '目录'
+    },
+    asyncData: {
+      type: Boolean,
+      default: true
     }
   },
   data () {
     return {
+      isCompleted: false,
+      positions: [],
       headers: [],
       curHeader: 0
     }
   },
   mounted () {
-    this.analyze()
-    this.bindScroll()
+    if (this.asyncData) {
+      this.$parent.$once('hook:updated', this.init)
+    } else {
+      this.init()
+    }
   },
   methods: {
-    // 映射标题的结构
-    analyze () {
-      const { headers } = this.$page
-      headers.forEach(h => {
+    init () {
+      smooth.polyfill() // 补丁
+      this.getContent()
+      this.bindScroll()
+    },
+    getContent () {
+      let dom = document.querySelector(this.selector)
+      let headers = dom.querySelectorAll('h1, h2, h3')
+      this.positions = Array.from(headers).map((h, index) => {
+        // 遍历标题，重置id并映射目录结构
+        const id = h.id = `header-${index + 1}`
         this.headers.push({
-          id: h.slug,
-          className: `title-${h.level}`,
-          content: h.title
+          id,
+          className: `title-${h.nodeName[1]}`,
+          content: h.textContent.replace(/^#\s/, '')
         })
+        return getElementPosition(h) // 获得位置信息便于后面比较
+      })
+      this.isCompleted = true
+    },
+    scroll (id, index) {
+      const el = document.getElementById(id)
+      this.curHeader = index
+      el.scrollIntoView({
+        block: 'start',
+        behavior: 'smooth'
       })
     },
-    bindScroll () {
-      const headers = document.querySelector(this.selector).querySelectorAll('h1, h2, h3')
-      const handler = _.throttle((event) => {
-        Array.from(headers).forEach((header, index) => {
-          const { top } = header.getBoundingClientRect()
-          if (top < 70 && top > 0) {
+    onScroll: debounce(function () {
+      // 获取当前滚动位置
+      const scrollY = Math.max(
+        window.pageYOffset,
+        document.documentElement.scrollTop,
+        document.body.scrollTop
+      ) + 70
+
+      this.positions.forEach((cur, index) => {
+        if (
+          index === this.positions.length - 1
+          && scrollY > cur.y 
+        ) {
+            this.curHeader = index
+        } else {
+          const next = this.positions[index + 1]
+          // 当前位置在当前和下一个标题中间
+          if (scrollY >= cur.y && scrollY < next.y) {
             this.curHeader = index
           }
-        })
-      }, 20)
-      window.addEventListener('scroll', handler)
-      this.$on('hook:beforeDestroyed', () => {
-        window.removeEventListener('scroll', handler)
+        }
       })
+    }, 100),
+    bindScroll () {
+      window.addEventListener('scroll', this.onScroll)
     }
+  },
+  beforeDestroy () {
+    window.removeEventListener('scroll', this.onScroll)
+  }
+}
+
+/**
+ * 获取dom元素的坐标
+ */
+function getElementPosition (el) {
+  const docEl = document.documentElement
+  const docRect = docEl.getBoundingClientRect()
+  const elRect = el.getBoundingClientRect()
+  return {
+    x: elRect.left - docRect.left,
+    y: elRect.top - docRect.top,
   }
 }
 </script>
@@ -83,31 +141,9 @@ export default {
   .container
     position sticky
     top 0
-    padding 0
-    margin 0
-    list-style none
-    li:hover
-      background-color $grey
-      &>a
-        color $blue
-
-  .title
-    margin 20px 20px 5px 15px
-
-  .catalogue
-    position relative
-    padding 0 10px
-    margin 0
+    padding 10px
     width 200px
-    font-size 14px
-    list-style none
-    &::before
-      content ""
-      position absolute
-      left 17px
-      width 3px
-      height 100%
-      background-color $grey
+    font-size 0.9em
     a
       display block
       position relative
@@ -120,30 +156,45 @@ export default {
       background-color $grey
       &>a
         color $blue
+
+  .catalogue
+    position relative
+    width 100%
+    padding 0
+    list-style none
+    li:hover
+      background-color $grey
+      &>a
+        color $blue
+    &::before
+      content ""
+      position absolute
+      left 7px
+      width 2px
+      height 100%
+      background-color $grey
     /**
      * 分别对应三级标题的样式
      */
     // 标题前面的小圆点
-    point($scale)
-      content ""
-      position absolute
-      left 5px
-      top 50%
-      transform translateY(-50%)
-      background-color black
-      width $scale
-      height $scale
-      border-radius $scale
-    .title-1
+    point($scale, $left)
+      &::before
+        content ""
+        position absolute
+        left $left
+        top 50%
+        transform translateY(-50%)
+        background-color black
+        width $scale
+        height $scale
+        border-radius $scale
+    .title-1 a
       font-weight bold
-      &>a::before
-        point(6px)
-    .title-2
-      padding-left 20px
-      &>a::before
-        point(5px)
-    .title-3
+      point(6px, 5px)
+    .title-2 a
       padding-left 40px
-      &>a::before
-        point(4px)
+      point(5px, 25px)
+    .title-3 a
+      padding-left 60px
+      point(4px, 45px)
 </style>

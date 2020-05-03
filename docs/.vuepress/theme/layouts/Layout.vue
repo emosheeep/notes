@@ -15,7 +15,7 @@
     </div>
 
     <!--目录区域-->
-    <catalogue selector="#article" class="list" />
+    <catalogue selector="#article" class="list" :async-data="false" />
   </div>
 </template>
 
