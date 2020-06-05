@@ -1,3 +1,7 @@
+---
+title: VueRouter
+---
+
 # 过程简述
 
 1. **插件安装**。调用`install`方法，方法内部使用`mixin`全局混入两个钩子：`beforeCreate`和`destroyed`。前者做路由初始化，后者卸载路由。

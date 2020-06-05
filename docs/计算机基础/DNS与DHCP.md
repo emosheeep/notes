@@ -1,3 +1,7 @@
+---
+title: DNS与DCHP
+---
+
 # DNS
 
 ## 意义
