@@ -4,7 +4,6 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "docs:dev": "vuepress dev docs",
     "docs:build": "vuepress build docs",
     "deploy": "bash deploy.sh"
@@ -12,10 +11,10 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@vuepress/plugin-back-to-top": "^1.4.1",
-    "vuepress": "^1.4.1"
+    "@vuepress/plugin-back-to-top": "^1.5.0",
+    "vuepress": "^1.5.0"
   },
   "dependencies": {
-    "valine": "^1.4.4"
+    "valine": "^1.4.14"
   }
 }

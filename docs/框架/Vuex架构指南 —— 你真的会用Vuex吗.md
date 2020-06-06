@@ -1,3 +1,7 @@
+---
+title: Vuex 架构指南
+---
+
 # 前言
 
 最近，在和朋友们协作的时候，暴露了许多问题，这其中最让人头疼的应该是，**代码组织问题**。
@@ -47,11 +51,11 @@
     ├── mutations.js      # 根级别的 mutation
     ├── races             # races 模块
     │   ├── index.js      # 导出module
-    │	├── mutations.js  # module 级别的mutations
+    │	  ├── mutations.js  # module 级别的mutations
     │   └── actions.js    # module 级别的actions
     ├── users
     │   ├── index.js
-    │	├── mutations.js
+    │	  ├── mutations.js
     │   └── actions.js
     └── records
         ├── index.js
@@ -196,7 +200,7 @@ store.dispatch('ADD_RECORD') // 编译器不会报错，如果写错，运行时
 
 其实如果你直接使用字符串，即便发现了错误，你也不一定知道是在哪里写错的，因为这样会使得代码中到处都是字符串，谁能保证都写对了呢？而且官方也是推荐使用这种方式来维护日趋庞大的项目得，有图有真相：
 
-![vuex官方推荐使用mutation-types的方式](C:\Users\Administrator\Desktop\notes\docs\框架\images\vuex官方推荐使用mutation-types的方式.png)
+![vuex官方推荐使用mutation-types的方式](/images/mutation-types.png)
 
 什么？你只是个小demo？好的没问题，下一个👌。
 
